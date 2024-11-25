@@ -1,0 +1,13 @@
+# config.yml
+
+accounts:
+    - cpsc.gov
+    - fda.gov
+    - neorsd.org
+
+post_limit: 100
+
+
+output:
+    maths: output/maths
+    pretty: output/html

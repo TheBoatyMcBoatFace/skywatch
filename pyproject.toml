@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "skywatch"
+version = "0.1.0"
+description = "Things"
+authors = ["Bentley Hensel <bentleyhensel@gmail.com>"]
+license = "AGPL-3.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+requests = "^2.32.3"
+pyyaml = "^6.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
