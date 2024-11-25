@@ -4,51 +4,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bluesky User Report</title>
+  <!-- USWDS CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uswds@3.0.3/dist/css/uswds.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-      background-color: #f9f9f9;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
+      padding: 20px;
+      background-color: #f8f9fa;
     }
     #report-section {
       display: none;
       margin-top: 20px;
     }
-    canvas {
-      max-width: 600px;
-      margin: 20px auto;
-    }
     .chart-container {
       text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f1f1;
+    }
+    #error-message {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>Bluesky User Report</h1>
-  <p>Enter a Bluesky username to generate a report:</p>
-  <input type="text" id="username" placeholder="Enter Bluesky username" />
-  <button id="generate-report">Generate Report</button>
-  <div id="error-message" style="color: red; display: none;">Failed to fetch data. Please try again.</div>
-
-  <div id="report-section">
-    <h2>User: <span id="user-handle"></span></h2>
-    <p>Followers: <span id="followers-count"></span></p>
-    <p>Following: <span id="follows-count"></span></p>
-    <p>Total Posts: <span id="posts-count"></span></p>
-
-    <div class="chart-container">
-      <canvas id="postsChart"></canvas>
+<!-- Banner and Header -->
+<div class="usa-banner">
+    <div class="usa-accordion">
+        <header class="usa-banner__header">
+            <div class="usa-banner__inner">
+                <div class="grid-col-auto">
+                    <img class="usa-banner__header-flag" src="https://designsystem.digital.gov/assets/img/us_flag_small.png" alt="U.S. flag">
+                </div>
+                <div class="grid-col-fill tablet:grid-col-auto">
+                    <p class="usa-banner__header-text">NOT an official website of the United States government, obviously</p>
+                    <p class="usa-banner__header-action"><a href="/about">Here's how you know</a></p>
+                </div>
+            </div>
+        </header>
     </div>
-  </div>
+</div>
+  <header>
+    <h1 class="usa-heading-xl">Bluesky User Report</h1>
+  </header>
+  <section>
+    <p class="usa-paragraph">Enter a Bluesky username to generate a report:</p>
+    <div class="usa-form-group">
+      <label for="username" class="usa-label">Username</label>
+      <input type="text" id="username" class="usa-input" placeholder="Enter Bluesky username" />
+    </div>
+    <button id="generate-report" class="usa-button">Generate Report</button>
+    <div id="error-message" class="usa-alert usa-alert--error">
+      <div class="usa-alert__body">
+        <h3 class="usa-alert__heading">Error</h3>
+        <p class="usa-alert__text">Failed to fetch data. Please check the username and try again.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="report-section">
+    <h2 class="usa-heading-lg">User: <span id="user-handle"></span></h2>
+    <div class="chart-container">
+      <canvas id="profileChart"></canvas>
+    </div>
+    <h3 class="usa-heading-md">Recent Posts</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Post ID</th>
+          <th>Post Text</th>
+          <th>Likes</th>
+          <th>Reposts</th>
+          <th>Replies</th>
+          <th>Quotes</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody id="posts-table">
+      </tbody>
+    </table>
+  </section>
 
   <script>
-    const API_URL = "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile";
+    const PROFILE_API = "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile";
+    const POSTS_API = "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed";
 
     document.getElementById("generate-report").addEventListener("click", async () => {
       const username = document.getElementById("username").value.trim();
@@ -61,37 +110,48 @@
       document.getElementById("report-section").style.display = "none";
 
       try {
-        // Fetch data from the API
-        const response = await fetch(`${API_URL}?actor=${username}`);
-        if (!response.ok) throw new Error("Failed to fetch data");
+        // Fetch profile data
+        const profileResponse = await fetch(`${PROFILE_API}?actor=${username}`);
+        if (!profileResponse.ok) throw new Error("Failed to fetch profile data");
+        const profileData = await profileResponse.json();
 
-        const data = await response.json();
+        // Fetch posts
+        const postsResponse = await fetch(`${POSTS_API}?actor=${username}&limit=100&filter=posts_with_replies`);
+        if (!postsResponse.ok) throw new Error("Failed to fetch posts data");
+        const postsData = await postsResponse.json();
 
-        // Update the report section
-        document.getElementById("user-handle").textContent = data.handle;
-        document.getElementById("followers-count").textContent = data.followersCount || 0;
-        document.getElementById("follows-count").textContent = data.followsCount || 0;
-        document.getElementById("posts-count").textContent = data.postsCount || 0;
+        // Update the user handle
+        document.getElementById("user-handle").textContent = profileData.handle;
 
-        document.getElementById("report-section").style.display = "block";
+        // Prepare profile metrics for chart
+        const chartData = {
+          labels: ["Followers", "Following", "Total Posts"],
+          datasets: [{
+            label: "Profile Metrics",
+            data: [
+              profileData.followersCount || 0,
+              profileData.followsCount || 0,
+              profileData.postsCount || 0
+            ],
+            backgroundColor: [
+              "rgba(54, 162, 235, 0.6)",
+              "rgba(75, 192, 192, 0.6)",
+              "rgba(255, 99, 132, 0.6)"
+            ],
+            borderColor: [
+              "rgba(54, 162, 235, 1)",
+              "rgba(75, 192, 192, 1)",
+              "rgba(255, 99, 132, 1)"
+            ],
+            borderWidth: 1
+          }]
+        };
 
-        // Create a chart for posts over time (mocked example for demo purposes)
-        const postsData = Array.from({ length: 12 }, () => Math.floor(Math.random() * 50)); // Fake monthly data
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-        const ctx = document.getElementById("postsChart").getContext("2d");
+        // Create the chart
+        const ctx = document.getElementById("profileChart").getContext("2d");
         new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: months,
-            datasets: [{
-              label: "Posts Over Time",
-              data: postsData,
-              borderColor: "rgba(75, 192, 192, 1)",
-              backgroundColor: "rgba(75, 192, 192, 0.2)",
-              borderWidth: 2
-            }]
-          },
+          type: "bar",
+          data: chartData,
           options: {
             responsive: true,
             plugins: {
@@ -103,18 +163,42 @@
               x: {
                 title: {
                   display: true,
-                  text: "Month"
+                  text: "Metric"
                 }
               },
               y: {
+                beginAtZero: true,
                 title: {
                   display: true,
-                  text: "Number of Posts"
+                  text: "Count"
                 }
               }
             }
           }
         });
+
+        // Parse and populate posts table
+        const postsTable = document.getElementById("posts-table");
+        postsTable.innerHTML = ""; // Clear previous data
+        for (const item of postsData.feed || []) {
+          const post = item.post;
+          const record = post.record || {};
+          const row = `
+            <tr>
+              <td>${post.uri.split('/').pop()}</td>
+              <td>${(record.text || "N/A").replace(/\n/g, " ")}</td>
+              <td>${post.likeCount || 0}</td>
+              <td>${post.repostCount || 0}</td>
+              <td>${post.replyCount || 0}</td>
+              <td>${post.quoteCount || 0}</td>
+              <td>${record.createdAt || "N/A"}</td>
+            </tr>
+          `;
+          postsTable.insertAdjacentHTML("beforeend", row);
+        }
+
+        // Show the report section
+        document.getElementById("report-section").style.display = "block";
       } catch (error) {
         document.getElementById("error-message").style.display = "block";
         console.error(error);
