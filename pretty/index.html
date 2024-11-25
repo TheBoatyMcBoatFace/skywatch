@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uswds/2.12.1/css/uswds.min.css">
     <link rel="stylesheet" href="assets/css/style.css" />
-    <script defer src="assets/js/app.js"></script>
+    <link rel="icon" href="https://designsystem.digital.gov/assets/img/us_flag_small.png" />
+    <meta property="og:title" content="Bluesky User Report" />
+    <meta property="og:description" content="Generate reports for Bluesky users and explore user metrics!" />
+    <meta property="og:image" content="assets/social.png" />
+    <meta property="og:url" content="https://bsky.bentleyhensel.com" />
+    <meta property="og:type" content="website" />
+    <script type="module" src="assets/js/app.js"></script>
+    <script type="module" src="assets/js/export.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
@@ -49,6 +56,28 @@
       </nav>
     </header>
     <main class="usa-section main-container">
+    <section class="usa-alert usa-alert--info">
+      <div class="usa-alert__body">
+        <h3 class="usa-alert__heading">Note</h3>
+        <p class="usa-alert__text">
+          I'm not a front-end person, so if you want this tool to look prettier, feel free to make it happen on <a href="https://github.com/TheBoatyMcBoatFace/skywatch/">GitHub</a>.
+        </p>
+      </div>
+    </section>
+
+      <section>
+        <h3 class="usa-heading-md">SkyWatch 👀</h3>
+        <p class="usa-paragraph-full">
+          This lets you fetch the latest 100 posts from any Bluesky user. We are working on a creative way to get more, but haven't gotten to that point yet. You can also export this data for further analysis.</p>
+          <p class="usa-paragraph-full">
+          We're working on exciting 🐍 Python scripts to provide longitudinal data insights, so stay tuned! Keep an eye on
+          <a href="https://github.com/TheBoatyMcBoatFace/skywatch/">our GitHub page</a> for updates and contributions.
+        </p>
+        <p class="usa-paragraph-full">
+        Don't forget to fry your 🦃 from 🧊 this Thanksgiving. Lolz, don't do that.  Also, this is a public plea for <a href="https://bsky.app/profile/cpsc.gov" target=_blank>Consumer Product Safety Board</a> to create banger videos like <a href="https://www.youtube.com/user/USCSB" target=_blank>the US Chemical Safety Board</a>
+        </p>
+      </section>
+
       <section>
         <form id="user-form" class="usa-form">
           <label for="username" class="usa-label">Enter a Bluesky username to generate a report:</label>
@@ -61,6 +90,7 @@
               value="bentleyhensel.com"
             />
             <button type="submit" class="usa-button">Generate Report</button>
+            <p><strong>Examples:</strong> <em>cpsc.gov, mgifford.bsky.social, bentleyhensel.com</em></p>
           </div>
         </form>
         <div
@@ -101,9 +131,11 @@
               <h4>Starterpacks Count</h4>
               <p id="starterpacks-count">0</p>
             </div>
+            <button id="export-account-csv" class="usa-button">Export Account Metrics</button>
           </div>
         </div>
         <h3 class="usa-heading-md">Recent Posts</h3>
+        <button id="export-posts-csv" class="usa-button">Export Posts Metrics</button>
         <table class="usa-table usa-table--bordered">
           <thead>
             <tr>

@@ -1,7 +1,9 @@
+import { downloadCSV, exportPostsMetrics, exportAccountMetrics } from './export.js';
+
 const PROFILE_API = "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile";
 const POSTS_API = "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed";
-
 let profileChartInstance = null;
+let storedProfileData = null;
 
 document.getElementById("user-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -24,6 +26,15 @@ document.getElementById("user-form").addEventListener("submit", async (e) => {
         return res.json();
       })
     ]);
+
+    storedProfileData = profileData;
+
+    // Track the report generation event
+    gtag('event', 'generate_report', {
+      'event_category': 'report',
+      'event_label': profileData.handle,
+      'value': 1
+    });
 
     document.getElementById("user-handle").textContent = profileData.handle;
     document.getElementById("user-handle").href = `https://bsky.app/profile/${username}`;
@@ -96,4 +107,33 @@ document.getElementById("user-form").addEventListener("submit", async (e) => {
     document.getElementById("error-message").style.display = "block";
     console.error("Failed to fetch data", error);
   }
+});
+
+document.getElementById("export-posts-csv").addEventListener("click", () => {
+  const postsTable = document.getElementById("posts-table");
+  const postsData = Array.from(postsTable.rows).slice(1).map(row => {
+    const cells = row.querySelectorAll("td");
+    return {
+      "Post ID": cells[0].textContent,
+      "Post Text": cells[1].textContent,
+      "Likes": cells[2].textContent,
+      "Reposts": cells[3].textContent,
+      "Replies": cells[4].textContent,
+      "Quotes": cells[5].textContent,
+      "Created At": cells[6].textContent
+    };
+  });
+  const csvContent = exportPostsMetrics(postsData);
+  const filename = `${storedProfileData.handle}_post_metrics.csv`;
+  downloadCSV(filename, csvContent);
+});
+
+document.getElementById("export-account-csv").addEventListener("click", () => {
+  if (!storedProfileData) {
+    alert("No profile data available!");
+    return;
+  }
+  const csvContent = exportAccountMetrics(storedProfileData);
+  const filename = `${storedProfileData.handle}_account_metrics.csv`;
+  downloadCSV(filename, csvContent);
 });
