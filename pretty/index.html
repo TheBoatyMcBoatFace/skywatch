@@ -6,7 +6,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uswds/2.12.1/css/uswds.min.css">
     <link rel="stylesheet" href="assets/css/style.css" />
     <script defer src="assets/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
     <title>Bluesky User Report</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BP0D23Z6D0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-BP0D23Z6D0');
+    </script>
   </head>
   <body>
     <div class="usa-banner">
@@ -22,39 +33,36 @@
             </div>
             <div class="grid-col-fill tablet:grid-col-auto">
               <p class="usa-banner__header-text">
-                NOT an official website of the United States government,
-                obvi
-              </p>
-              <p class="usa-banner__header-action">
-                <a href="https://github.com/TheBoatyMcBoatFace/skywatch/">Here's how you know</a>
+                NOT an official website of the United States government, obvi
               </p>
             </div>
           </div>
         </header>
       </div>
     </div>
-
     <header class="usa-header">
-      <div class="usa-nav-container">
-        <h1 class="usa-heading-xl">Bluesky User Report</h1>
-      </div>
+      <nav class="main-container">
+        <h1>Bluesky User Report</h1>
+        <a href="https://github.com/TheBoatyMcBoatFace/skywatch/">
+          <img src="assets/github-mark-white.png" alt="GitHub" width="24" height="24">
+        </a>
+      </nav>
     </header>
-
-    <main class="usa-section">
+    <main class="usa-section main-container">
       <section>
-        <p class="usa-paragraph">
-          Enter a Bluesky username to generate a report:
-        </p>
-        <div class="usa-form-group">
-          <label for="username" class="usa-label">Username</label>
-          <input
-            type="text"
-            id="username"
-            class="usa-input"
-            placeholder="Enter Bluesky username"
-          />
-        </div>
-        <button id="generate-report" class="usa-button">Generate Report</button>
+        <form id="user-form" class="usa-form">
+          <label for="username" class="usa-label">Enter a Bluesky username to generate a report:</label>
+          <div class="usa-form-group">
+            <input
+              type="text"
+              id="username"
+              class="usa-input"
+              placeholder="Enter Bluesky username"
+              value="bentleyhensel.com"
+            />
+            <button type="submit" class="usa-button">Generate Report</button>
+          </div>
+        </form>
         <div
           id="error-message"
           class="usa-alert usa-alert--error"
@@ -68,14 +76,35 @@
           </div>
         </div>
       </section>
-
       <section id="report-section" style="display:none;">
-        <h2 class="usa-heading-lg">User: <span id="user-handle"></span></h2>
-        <div class="chart-container">
-          <canvas id="profileChart"></canvas>
+        <h2 class="usa-heading-lg">
+          User: <a id="user-handle" href="#" target="_blank"></a>
+        </h2>
+        <div class="metrics-container">
+          <div class="chart-container" style="height: 300px;">
+            <canvas id="profileChart"></canvas>
+          </div>
+          <div class="hero-metrics">
+            <div class="hero-metric">
+              <h4>Posts Count</h4>
+              <p id="posts-count">0</p>
+            </div>
+            <div class="hero-metric">
+              <h4>Lists Count</h4>
+              <p id="lists-count">0</p>
+            </div>
+            <div class="hero-metric">
+              <h4>Feeds Count</h4>
+              <p id="feeds-count">0</p>
+            </div>
+            <div class="hero-metric">
+              <h4>Starterpacks Count</h4>
+              <p id="starterpacks-count">0</p>
+            </div>
+          </div>
         </div>
         <h3 class="usa-heading-md">Recent Posts</h3>
-        <table class="usa-table">
+        <table class="usa-table usa-table--bordered">
           <thead>
             <tr>
               <th>Post ID</th>
