@@ -72,3 +72,8 @@ document.getElementById("generate-report").addEventListener("click", async () =>
 
     // Show the report section
     document.getElementById("report-section").style.display = "block";
+  } catch (error) {
+    document.getElementById("error-message").style.display = "block";
+    console.error(error);
+  }
+});
