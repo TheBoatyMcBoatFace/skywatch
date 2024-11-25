@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluesky User Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    #report-section {
+      display: none;
+      margin-top: 20px;
+    }
+    canvas {
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .chart-container {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bluesky User Report</h1>
+  <p>Enter a Bluesky username to generate a report:</p>
+  <input type="text" id="username" placeholder="Enter Bluesky username" />
+  <button id="generate-report">Generate Report</button>
+  <div id="error-message" style="color: red; display: none;">Failed to fetch data. Please try again.</div>
+
+  <div id="report-section">
+    <h2>User: <span id="user-handle"></span></h2>
+    <p>Followers: <span id="followers-count"></span></p>
+    <p>Following: <span id="follows-count"></span></p>
+    <p>Total Posts: <span id="posts-count"></span></p>
+
+    <div class="chart-container">
+      <canvas id="postsChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile";
+
+    document.getElementById("generate-report").addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      if (!username) {
+        alert("Please enter a username.");
+        return;
+      }
+
+      document.getElementById("error-message").style.display = "none";
+      document.getElementById("report-section").style.display = "none";
+
+      try {
+        // Fetch data from the API
+        const response = await fetch(`${API_URL}?actor=${username}`);
+        if (!response.ok) throw new Error("Failed to fetch data");
+
+        const data = await response.json();
+
+        // Update the report section
+        document.getElementById("user-handle").textContent = data.handle;
+        document.getElementById("followers-count").textContent = data.followersCount || 0;
+        document.getElementById("follows-count").textContent = data.followsCount || 0;
+        document.getElementById("posts-count").textContent = data.postsCount || 0;
+
+        document.getElementById("report-section").style.display = "block";
+
+        // Create a chart for posts over time (mocked example for demo purposes)
+        const postsData = Array.from({ length: 12 }, () => Math.floor(Math.random() * 50)); // Fake monthly data
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        const ctx = document.getElementById("postsChart").getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: months,
+            datasets: [{
+              label: "Posts Over Time",
+              data: postsData,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Month"
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Number of Posts"
+                }
+              }
+            }
+          }
+        });
+      } catch (error) {
+        document.getElementById("error-message").style.display = "block";
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>
